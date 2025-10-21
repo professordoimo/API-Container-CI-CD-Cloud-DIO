@@ -1,0 +1,12 @@
+{
+  "name": "api-deploy-dio",
+  "version": "1.0.0",
+  "description": "API simples para teste de deploy na nuvem.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
