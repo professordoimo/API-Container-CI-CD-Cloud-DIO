@@ -1,0 +1,48 @@
+name: CI/CD - Deploy da API na Nuvem
+
+on:
+  push:
+    branches:
+      - main  # Executa sempre que houver um push na branch main
+
+env:
+  # Substitua pelos dados do seu registry/nuvem
+  AWS_REGION: sa-east-1
+  ECR_REPOSITORY: nome-do-seu-repositorio-ecr-dio
+  IMAGE_TAG: ${{ github.sha }} # Usa o hash do commit como tag
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 1. Checkout do Código
+      uses: actions/checkout@v3
+
+    # --- Containerização e Push para o Registry (AWS ECR como exemplo) ---
+    - name: 2. Configurar Credenciais AWS
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        # AS VARIÁVEIS ABAIXO SÃO SECRETS DO REPOSITÓRIO!
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: 3. Login no Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: 4. Build, Tag e Push da Imagem Docker
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image_uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    # --- Etapa de Deploy (Necessita de mais configurações do Serviço Cloud) ---
+    - name: 5. Deploy no Serviço Cloud (ECS/Container Apps)
+      # Aqui você colocaria o comando para atualizar o serviço cloud
+      # Ex: Comando AWS CLI ou Azure CLI para forçar o serviço a usar a nova imagem.
+      run: |
+        echo "TODO: Adicionar comando de deploy na nuvem aqui (ex: AWS ECS, Azure Container Apps)"
